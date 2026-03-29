@@ -292,10 +292,7 @@
     setLoading('redeemBtn', true, 'Mark as Redeemed');
 
     try {
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        body: JSON.stringify({ serial: currentSerial }),
-      });
+      const res = await fetch(`${API_URL}?serial=${encodeURIComponent(currentSerial)}&action=redeem`);
       const data = await res.json();
 
       if (data.success) {
