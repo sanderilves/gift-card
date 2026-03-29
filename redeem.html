@@ -221,6 +221,10 @@
 
   <hr class="divider" id="redeemDivider" style="display:none;">
   <div id="redeemSection" style="display:none;">
+    <div class="input-group">
+      <label for="pinInput">Staff PIN</label>
+      <input type="password" id="pinInput" placeholder="••••" maxlength="4" autocomplete="off" />
+    </div>
     <button id="redeemBtn" onclick="redeemCard()">Mark as Redeemed</button>
   </div>
 </div>
@@ -289,10 +293,18 @@
   }
 
   async function redeemCard() {
+    const pin = document.getElementById('pinInput').value.trim();
+    if (pin !== '3470') {
+      showResult('error', '✗', 'Incorrect PIN', 'Ask your manager for the staff PIN.');
+      return;
+    }
     setLoading('redeemBtn', true, 'Mark as Redeemed');
 
     try {
-      const res = await fetch(`${API_URL}?serial=${encodeURIComponent(currentSerial)}&action=redeem`);
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ serial: currentSerial }),
+      });
       const data = await res.json();
 
       if (data.success) {
