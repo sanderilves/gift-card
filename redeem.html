@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gift Card Redemption</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e0e;
+    --surface: #1a1a1a;
+    --border: #2a2a2a;
+    --accent: #c8f135;
+    --text: #f0f0f0;
+    --muted: #666;
+    --red: #ff4444;
+    --green: #44ff88;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px 40px;
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .logo {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 40px;
+  }
+
+  .logo span { color: var(--accent); }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 36px;
+    line-height: 1.5;
+  }
+
+  .serial-display {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    display: none;
+  }
+
+  .serial-display.visible { display: block; }
+
+  .serial-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .serial-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+
+  .input-group { margin-bottom: 16px; }
+
+  label {
+    display: block;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+    letter-spacing: 0.05em;
+  }
+
+  input:focus { border-color: var(--accent); }
+  input::placeholder { color: var(--muted); }
+
+  button {
+    width: 100%;
+    background: var(--accent);
+    color: #0e0e0e;
+    border: none;
+    border-radius: 10px;
+    padding: 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-top: 8px;
+  }
+
+  button:hover { opacity: 0.88; }
+  button:active { transform: scale(0.98); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .result {
+    margin-top: 24px;
+    border-radius: 10px;
+    padding: 18px 20px;
+    font-size: 14px;
+    line-height: 1.6;
+    display: none;
+  }
+
+  .result.visible { display: block; }
+
+  .result.success {
+    background: rgba(68, 255, 136, 0.08);
+    border: 1px solid rgba(68, 255, 136, 0.25);
+    color: var(--green);
+  }
+
+  .result.error {
+    background: rgba(255, 68, 68, 0.08);
+    border: 1px solid rgba(255, 68, 68, 0.25);
+    color: var(--red);
+  }
+
+  .result.warning {
+    background: rgba(255, 200, 50, 0.08);
+    border: 1px solid rgba(255, 200, 50, 0.25);
+    color: #ffc832;
+  }
+
+  .result-icon { font-size: 20px; margin-bottom: 8px; display: block; }
+  .result-title { font-weight: 500; font-size: 15px; margin-bottom: 4px; }
+  .result-detail { font-size: 13px; opacity: 0.8; font-family: 'DM Mono', monospace; }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 28px 0;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #0e0e0e;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">Gift Card <span>//</span> Staff Portal</div>
+
+  <h1>Redeem a Card</h1>
+  <p class="subtitle">Enter the serial number printed on the gift card to check its status and mark it as redeemed.</p>
+
+  <div class="serial-display" id="qrSerial">
+    <div class="serial-label">Scanned from QR</div>
+    <div class="serial-value" id="qrSerialValue"></div>
+  </div>
+
+  <div class="input-group">
+    <label for="serialInput">Serial Number</label>
+    <input type="text" id="serialInput" placeholder="GC-XXXXXXXX" autocomplete="off" autocapitalize="characters" />
+  </div>
+
+  <button id="checkBtn" onclick="checkCard()">Check Card</button>
+
+  <div class="result" id="result">
+    <span class="result-icon" id="resultIcon"></span>
+    <div class="result-title" id="resultTitle"></div>
+    <div class="result-detail" id="resultDetail"></div>
+  </div>
+
+  <hr class="divider" id="redeemDivider" style="display:none;">
+  <div id="redeemSection" style="display:none;">
+    <button id="redeemBtn" onclick="redeemCard()">Mark as Redeemed</button>
+  </div>
+</div>
+
+<script>
+  const API_URL = 'https://script.google.com/macros/s/AKfycbzij_tH3RRKMKDoqXTOdUdK0kMTWEKGnb9LoKSeQhPoMCTvPeThERto7HipACJn2cEW/exec';
+  let currentSerial = '';
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const serial = params.get('serial');
+    if (serial) {
+      const s = serial.toUpperCase();
+      document.getElementById('serialInput').value = s;
+      document.getElementById('qrSerialValue').textContent = s;
+      document.getElementById('qrSerial').classList.add('visible');
+    }
+
+    document.getElementById('serialInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') checkCard();
+    });
+  });
+
+  function showResult(type, icon, title, detail) {
+    const el = document.getElementById('result');
+    el.className = 'result visible ' + type;
+    document.getElementById('resultIcon').textContent = icon;
+    document.getElementById('resultTitle').textContent = title;
+    document.getElementById('resultDetail').textContent = detail;
+  }
+
+  function setLoading(btnId, loading, idleText) {
+    const btn = document.getElementById(btnId);
+    btn.disabled = loading;
+    btn.innerHTML = loading ? `<span class="spinner"></span>Please wait...` : idleText;
+  }
+
+  async function checkCard() {
+    const serial = document.getElementById('serialInput').value.trim().toUpperCase();
+    if (!serial) return;
+
+    currentSerial = serial;
+    document.getElementById('redeemSection').style.display = 'none';
+    document.getElementById('redeemDivider').style.display = 'none';
+    setLoading('checkBtn', true, 'Check Card');
+
+    try {
+      const res = await fetch(`${API_URL}?serial=${encodeURIComponent(serial)}`);
+      const data = await res.json();
+
+      if (!data.found) {
+        showResult('error', '✗', 'Card not found', `No card matching ${serial} exists.`);
+      } else if (data.redeemed === 'YES') {
+        const date = data.redeemed_date ? new Date(data.redeemed_date).toLocaleString() : 'unknown date';
+        showResult('warning', '⚠', 'Already redeemed', `Redeemed on ${date}.`);
+      } else {
+        showResult('success', '✓', 'Valid — ready to redeem', serial);
+        document.getElementById('redeemDivider').style.display = 'block';
+        document.getElementById('redeemSection').style.display = 'block';
+      }
+    } catch (e) {
+      showResult('error', '✗', 'Connection error', 'Could not reach the server.');
+    }
+
+    setLoading('checkBtn', false, 'Check Card');
+  }
+
+  async function redeemCard() {
+    setLoading('redeemBtn', true, 'Mark as Redeemed');
+
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ serial: currentSerial }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showResult('success', '✓', 'Redeemed successfully', `${currentSerial} is now marked as used.`);
+        document.getElementById('redeemSection').style.display = 'none';
+        document.getElementById('redeemDivider').style.display = 'none';
+      } else {
+        showResult('error', '✗', 'Failed', data.message || 'Something went wrong.');
+      }
+    } catch (e) {
+      showResult('error', '✗', 'Connection error', 'Could not reach the server.');
+    }
+
+    setLoading('redeemBtn', false, 'Mark as Redeemed');
+  }
+</script>
+</body>
+</html>
