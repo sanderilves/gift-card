@@ -262,6 +262,25 @@
     btn.innerHTML = loading ? `<span class="spinner"></span>Please wait...` : idleText;
   }
 
+  function jsonp(url) {
+    return new Promise((resolve, reject) => {
+      const cb = 'cb_' + Date.now();
+      const script = document.createElement('script');
+      script.src = url + '&callback=' + cb;
+      window[cb] = (data) => {
+        delete window[cb];
+        document.body.removeChild(script);
+        resolve(data);
+      };
+      script.onerror = () => {
+        delete window[cb];
+        document.body.removeChild(script);
+        reject(new Error('Request failed'));
+      };
+      document.body.appendChild(script);
+    });
+  }
+
   async function checkCard() {
     const serial = document.getElementById('serialInput').value.trim().toUpperCase();
     if (!serial) return;
@@ -272,8 +291,7 @@
     setLoading('checkBtn', true, 'Check Card');
 
     try {
-      const res = await fetch(`${API_URL}?serial=${encodeURIComponent(serial)}`);
-      const data = await res.json();
+      const data = await jsonp(`${API_URL}?serial=${encodeURIComponent(serial)}`);
 
       if (!data.found) {
         showResult('error', '✗', 'Card not found', `No card matching ${serial} exists.`);
@@ -301,8 +319,7 @@
     setLoading('redeemBtn', true, 'Mark as Redeemed');
 
     try {
-      const res = await fetch(`${API_URL}?serial=${encodeURIComponent(currentSerial)}&action=redeem&pin=${encodeURIComponent(pin)}`);
-      const data = await res.json();
+      const data = await jsonp(`${API_URL}?serial=${encodeURIComponent(currentSerial)}&action=redeem&pin=${encodeURIComponent(pin)}`);
 
       if (data.success) {
         showResult('success', '✓', 'Redeemed successfully', `${currentSerial} is now marked as used.`);
