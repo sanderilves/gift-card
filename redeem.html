@@ -294,17 +294,14 @@
 
   async function redeemCard() {
     const pin = document.getElementById('pinInput').value.trim();
-    if (pin !== '3470') {
-      showResult('error', '✗', 'Incorrect PIN', 'Ask your manager for the staff PIN.');
+    if (!pin) {
+      showResult('error', '✗', 'PIN required', 'Enter the staff PIN to redeem.');
       return;
     }
     setLoading('redeemBtn', true, 'Mark as Redeemed');
 
     try {
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        body: JSON.stringify({ serial: currentSerial }),
-      });
+      const res = await fetch(`${API_URL}?serial=${encodeURIComponent(currentSerial)}&action=redeem&pin=${encodeURIComponent(pin)}`);
       const data = await res.json();
 
       if (data.success) {
